@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultimate Dodge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #gameCanvas {
+            display: block;
+        }
+        
+        /* Background Elements */
+        .bg-element {
+            position: absolute;
+            z-index: 1;
+        }
+        
+        /* Main Menu */
+        #menuScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-size: 6rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #FF5722, #FF9800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(255, 87, 34, 0.5);
+            animation: bounce 2s infinite;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+            width: 300px;
+        }
+        
+        .menu-btn {
+            padding: 15px;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #00BCD4, #4DD0E1);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 188, 212, 0.4);
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 188, 212, 0.6);
+        }
+        
+        .menu-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Game UI */
+        #gameUI {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        #scoreContainer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 30px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #scoreText {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        #coinDisplay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .coin-icon {
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
+            border-radius: 50%;
+            box-shadow: 0 0 5px gold;
+        }
+        
+        #coinCount {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        /* Time Attack Timer */
+        #timeDisplay {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: white;
+            font-size: 1.5rem;
+            display: none;
+        }
+        
+        /* Power-up Indicators */
+        .powerup-indicator {
+            position: absolute;
+            bottom: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #magnetIndicator {
+            left: 20px;
+        }
+        
+        #speedIndicator {
+            left: 180px;
+        }
+        
+        #invincibleIndicator {
+            left: 340px;
+        }
+        
+        #doubleCoinIndicator {
+            left: 500px;
+        }
+        
+        .powerup-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        /* Pause Button */
+        #pauseBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+        }
+        
+        /* Pause Menu */
+        #pauseScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 15;
+        }
+        
+        .pause-title {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            color: #FFD700;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        /* Game Over Screen */
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 20;
+        }
+        
+        .gameover-title {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #FF5252;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .final-stats {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        /* Mode Selection */
+        #modeScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 12;
+        }
+        
+        .mode-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: #FFD700;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .mode-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .mode-option {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .mode-option:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mode-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mode-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .mode-desc {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* Background Selection */
+        #bgScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 11;
+        }
+        
+        .bg-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: #FFD700;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .bg-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .bg-option {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .bg-option:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .bg-preview {
+            width: 150px;
+            height: 100px;
+            border-radius: 10px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .bg-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        /* Shop Screen */
+        #shopScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            color: white;
+            z-index: 25;
+            padding-top: 50px;
+            overflow-y: auto;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .shop-title {
+            font-size: 3rem;
+            margin-bottom: 30px;
+            color: #FFD700;
+        }
+        
+        .shop-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .shop-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.3s;
+        }
+        
+        .shop-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .item-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .item-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .item-desc {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .item-price {
+            font-size: 1.2rem;
+            color: #FFD700;
+        }
+        
+        .buy-btn {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #00BCD4, #4DD0E1);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .buy-btn:disabled {
+            background: #777;
+            cursor: not-allowed;
+        }
+        
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes cloudMove {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(100vw); }
+        }
+        
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes bubbleFloat {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100vh); }
+        }
+        
+        @keyframes neonPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 4rem;
+            }
+            
+            .menu-btn {
+                padding: 12px;
+                font-size: 1.2rem;
+            }
+            
+            #scoreText, #coinCount {
+                font-size: 1.2rem;
+            }
+            
+            .powerup-indicator {
+                font-size: 0.8rem;
+                padding: 5px 10px;
+            }
+            
+            #magnetIndicator { left: 10px; }
+            #speedIndicator { left: 120px; }
+            #invincibleIndicator { left: 230px; }
+            #doubleCoinIndicator { left: 340px; }
+            
+            .mode-option, .bg-option, .shop-item {
+                width: 150px;
+                padding: 15px;
+            }
+            
+            .mode-icon, .item-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .bg-preview {
+                width: 120px;
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Background elements will be added here dynamically -->
+        
+        <div id="gameUI">
+            <div id="scoreContainer">
+                <div id="scoreText">0</div>
+            </div>
+            
+            <div id="coinDisplay">
+                <div class="coin-icon"></div>
+                <div id="coinCount">0</div>
+            </div>
+            
+            <div id="timeDisplay">1:00</div>
+            
+            <div class="powerup-indicator" id="magnetIndicator">
+                <div class="powerup-icon" style="background: #00cec9;"></div>
+                <span>MAGNET</span>
+            </div>
+            
+            <div class="powerup-indicator" id="speedIndicator">
+                <div class="powerup-icon" style="background: #fd79a8;"></div>
+                <span>SPEED BOOST</span>
+            </div>
+            
+            <div class="powerup-indicator" id="invincibleIndicator">
+                <div class="powerup-icon" style="background: #fdcb6e;"></div>
+                <span>INVINCIBLE</span>
+            </div>
+            
+            <div class="powerup-indicator" id="doubleCoinIndicator">
+                <div class="powerup-icon" style="background: #a29bfe;"></div>
+                <span>2x COINS</span>
+            </div>
+        </div>
+        
+        <button id="pauseBtn">II</button>
+        
+        <div id="menuScreen">
+            <div class="logo">ULTIMATE DODGE</div>
+            <div class="menu-buttons">
+                <button class="menu-btn" id="startBtn">PLAY</button>
+                <button class="menu-btn" id="modeBtn">GAME MODES</button>
+                <button class="menu-btn" id="bgBtn">BACKGROUNDS</button>
+                <button class="menu-btn" id="shopBtn">SHOP</button>
+                <button class="menu-btn" id="resetBtn" style="background: linear-gradient(to right, #FF5722, #FF9800);">RESET ALL</button>
+            </div>
+        </div>
+        
+        <!-- Mode Selection Screen -->
+        <div id="modeScreen">
+            <h1 class="mode-title">SELECT GAME MODE</h1>
+            <div class="mode-options">
+                <div class="mode-option" id="classicMode">
+                    <div class="mode-icon">C</div>
+                    <div class="mode-name">Classic</div>
+                    <div class="mode-desc">Dodge obstacles and score as many points as you can</div>
+                </div>
+                
+                <div class="mode-option" id="timeAttackMode">
+                    <div class="mode-icon">T</div>
+                    <div class="mode-name">Time Attack</div>
+                    <div class="mode-desc">Score as many points as possible in 60 seconds</div>
+                </div>
+                
+                <div class="mode-option" id="survivalMode">
+                    <div class="mode-icon">S</div>
+                    <div class="mode-name">Survival</div>
+                    <div class="mode-desc">Survive as long as possible with increasing difficulty</div>
+                </div>
+            </div>
+            <button class="menu-btn" id="backFromMode" style="margin-top: 30px; background: linear-gradient(to right, #6c5ce7, #a29bfe);">BACK</button>
+        </div>
+        
+        <!-- Background Selection Screen -->
+        <div id="bgScreen">
+            <h1 class="bg-title">SELECT BACKGROUND</h1>
+            <div class="bg-options">
+                <div class="bg-option" id="pixarBg">
+                    <div class="bg-preview" style="background: linear-gradient(to bottom, #87CEEB, #E0F7FA);"></div>
+                    <div class="bg-name">Pixar</div>
+                </div>
+                
+                <div class="bg-option" id="spaceBg">
+                    <div class="bg-preview" style="background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);"></div>
+                    <div class="bg-name">Space</div>
+                </div>
+                
+                <div class="bg-option" id="underwaterBg">
+                    <div class="bg-preview" style="background: linear-gradient(to bottom, #1a2980, #26d0ce);"></div>
+                    <div class="bg-name">Underwater</div>
+                </div>
+                
+                <div class="bg-option" id="neonBg">
+                    <div class="bg-preview" style="background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);"></div>
+                    <div class="bg-name">Neon</div>
+                </div>
+            </div>
+            <button class="menu-btn" id="backFromBg" style="margin-top: 30px; background: linear-gradient(to right, #6c5ce7, #a29bfe);">BACK</button>
+        </div>
+        
+        <!-- Pause Screen -->
+        <div id="pauseScreen">
+            <h1 class="pause-title">PAUSED</h1>
+            <button class="menu-btn" id="resumeBtn">RESUME</button>
+            <button class="menu-btn" id="menuBtn" style="margin-top: 15px; background: linear-gradient(to right, #e17055, #d63031);">MAIN MENU</button>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen">
+            <h1 class="gameover-title">GAME OVER</h1>
+            <div class="final-stats">
+                <p>SCORE: <span id="finalScore">0</span></p>
+                <p>COINS COLLECTED: <span id="finalCoins">0</span></p>
+                <p id="timeStat">TIME: <span id="finalTime">0</span></p>
+                <p>HIGH SCORE: <span id="finalHighScore">0</span></p>
+            </div>
+            <button class="menu-btn" id="restartBtn">PLAY AGAIN</button>
+            <button class="menu-btn" id="gameOverShopBtn" style="margin-top: 15px;">SHOP</button>
+        </div>
+        
+        <!-- Shop Screen -->
+        <div id="shopScreen">
+            <h1 class="shop-title">UPGRADE SHOP</h1>
+            <div id="coinDisplay" style="position: relative; top: 0; left: 0; margin-bottom: 30px;">
+                <div class="coin-icon"></div>
+                <div id="shopCoinCount">0</div>
+            </div>
+            
+            <div class="shop-items">
+                <div class="shop-item">
+                    <div class="item-icon" style="background: #00cec9;">M</div>
+                    <div class="item-name">Coin Magnet</div>
+                    <div class="item-desc">Automatically collect coins from a distance</div>
+                    <div class="item-price">100 coins</div>
+                    <button class="buy-btn" id="buyMagnet">BUY</button>
+                </div>
+                
+                <div class="shop-item">
+                    <div class="item-icon" style="background: #fd79a8;">S</div>
+                    <div class="item-name">Speed Boost</div>
+                    <div class="item-desc">Increase your movement speed by 20%</div>
+                    <div class="item-price">50 coins</div>
+                    <button class="buy-btn" id="buySpeed">BUY</button>
+                </div>
+                
+                <div class="shop-item">
+                    <div class="item-icon" style="background: #fdcb6e;">I</div>
+                    <div class="item-name">Invincibility</div>
+                    <div class="item-desc">Start each run with 5 seconds of invincibility</div>
+                    <div class="item-price">150 coins</div>
+                    <button class="buy-btn" id="buyInvincible">BUY</button>
+                </div>
+                
+                <div class="shop-item">
+                    <div class="item-icon" style="background: #a29bfe;">2X</div>
+                    <div class="item-name">Double Coins</div>
+                    <div class="item-desc">Earn double coins for 30 seconds</div>
+                    <div class="item-price">75 coins</div>
+                    <button class="buy-btn" id="buyDoubleCoins">BUY</button>
+                </div>
+                
+                <div class="shop-item">
+                    <div class="item-icon" style="background: #55efc4;">C</div>
+                    <div class="item-name">Coin Value+</div>
+                    <div class="item-desc">Each coin worth +1 more</div>
+                    <div class="item-price">200 coins</div>
+                    <button class="buy-btn" id="buyCoinValue">BUY</button>
+                </div>
+                
+                <div class="shop-item">
+                    <div class="item-icon" style="background: #74b9ff;">P</div>
+                    <div class="item-name">Power-up+</div>
+                    <div class="item-desc">Power-ups last 50% longer</div>
+                    <div class="item-price">250 coins</div>
+                    <button class="buy-btn" id="buyPowerUpDuration">BUY</button>
+                </div>
+            </div>
+            <button class="menu-btn" id="closeShopBtn" style="margin-top: 30px; background: linear-gradient(to right, #6c5ce7, #a29bfe);">BACK</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // UI elements
+        const scoreText = document.getElementById('scoreText');
+        const coinCount = document.getElementById('coinCount');
+        const shopCoinCount = document.getElementById('shopCoinCount');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const finalScore = document.getElementById('finalScore');
+        const finalCoins = document.getElementById('finalCoins');
+        const finalTime = document.getElementById('finalTime');
+        const timeStat = document.getElementById('timeStat');
+        const finalHighScore = document.getElementById('finalHighScore');
+        
+        // Power-up indicators
+        const magnetIndicator = document.getElementById('magnetIndicator');
+        const speedIndicator = document.getElementById('speedIndicator');
+        const invincibleIndicator = document.getElementById('invincibleIndicator');
+        const doubleCoinIndicator = document.getElementById('doubleCoinIndicator');
+        
+        // Screens
+        const menuScreen = document.getElementById('menuScreen');
+        const modeScreen = document.getElementById('modeScreen');
+        const bgScreen = document.getElementById('bgScreen');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const shopScreen = document.getElementById('shopScreen');
+        
+        // Buttons
+        const startBtn = document.getElementById('startBtn');
+        const modeBtn = document.getElementById('modeBtn');
+        const bgBtn = document.getElementById('bgBtn');
+        const shopBtn = document.getElementById('shopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const gameOverShopBtn = document.getElementById('gameOverShopBtn');
+        const closeShopBtn = document.getElementById('closeShopBtn');
+        const backFromMode = document.getElementById('backFromMode');
+        const backFromBg = document.getElementById('backFromBg');
+        
+        // Mode selection
+        const classicMode = document.getElementById('classicMode');
+        const timeAttackMode = document.getElementById('timeAttackMode');
+        const survivalMode = document.getElementById('survivalMode');
+        
+        // Background selection
+        const pixarBg = document.getElementById('pixarBg');
+        const spaceBg = document.getElementById('spaceBg');
+        const underwaterBg = document.getElementById('underwaterBg');
+        const neonBg = document.getElementById('neonBg');
+        
+        // Shop buttons
+        const buyMagnet = document.getElementById('buyMagnet');
+        const buySpeed = document.getElementById('buySpeed');
+        const buyInvincible = document.getElementById('buyInvincible');
+        const buyDoubleCoins = document.getElementById('buyDoubleCoins');
+        const buyCoinValue = document.getElementById('buyCoinValue');
+        const buyPowerUpDuration = document.getElementById('buyPowerUpDuration');
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Game settings
+        const settings = {
+            background: localStorage.getItem('background') || 'pixar',
+            gameMode: localStorage.getItem('gameMode') || 'classic',
+            sound: localStorage.getItem('sound') === 'true' || true
+        };
+        
+        // Game state
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let coins = 0;
+        let totalCoins = parseInt(localStorage.getItem('totalCoins')) || 0;
+        let highScore = parseInt(localStorage.getItem('highScore')) || 0;
+        let timeAttackHighScore = parseInt(localStorage.getItem('timeAttackHighScore')) || 0;
+        let survivalHighScore = parseInt(localStorage.getItem('survivalHighScore')) || 0;
+        let animationId;
+        let lastTime = 0;
+        let gameSpeed = 1;
+        let obstacleSpawnTimer = 0;
+        let coinSpawnTimer = 0;
+        let powerUpSpawnTimer = 0;
+        let timeLeft = 60; // For time attack mode
+        let gameTime = 0; // For survival mode
+        
+        // Player upgrades
+        const upgrades = {
+            magnet: localStorage.getItem('magnet') === 'true' || false,
+            speedBoost: parseInt(localStorage.getItem('speedBoost')) || 0,
+            startInvincible: localStorage.getItem('startInvincible') === 'true' || false,
+            coinValue: parseInt(localStorage.getItem('coinValue')) || 1,
+            powerUpDuration: parseInt(localStorage.getItem('powerUpDuration')) || 1,
+            doubleCoins: false,
+            doubleCoinsTimer: 0
+        };
+        
+        // Active power-ups
+        const activePowerUps = {
+            magnet: false,
+            magnetTimer: 0,
+            speed: false,
+            speedTimer: 0,
+            invincible: false,
+            invincibleTimer: 0,
+            doubleCoins: false,
+            doubleCoinsTimer: 0
+        };
+        
+        // Player
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 150,
+            width: 60,
+            height: 80,
+            baseSpeed: 8,
+            get speed() {
+                let speed = this.baseSpeed;
+                if (activePowerUps.speed) speed *= 1.5;
+                speed *= (1 + upgrades.speedBoost * 0.2);
+                return speed;
+            },
+            color: '#FF5722',
+            movingLeft: false,
+            movingRight: false,
+            isInvincible: false,
+            invincibleTimer: 0,
+            platformWidth: 80,
+            platformHeight: 10,
+            animationFrame: 0
+        };
+        
+        // Game objects
+        let obstacles = [];
+        let coinsList = [];
+        let powerUpsList = [];
+        let platforms = [];
+        let particles = [];
+        let bgElements = [];
+        
+        // Obstacle types
+        const obstacleTypes = [
+            { width: 60, height: 60, color: '#E74C3C', score: 1 },
+            { width: 80, height: 40, color: '#3498DB', score: 2 },
+            { width: 40, height: 80, color: '#2ECC71', score: 2 },
+            { width: 70, height: 70, color: '#F39C12', score: 3 }
+        ];
+        
+        // Power-up types
+        const powerUpTypes = {
+            magnet: { width: 30, height: 30, color: '#00cec9', duration: 10000 },
+            speed: { width: 30, height: 30, color: '#fd79a8', duration: 8000 },
+            invincible: { width: 30, height: 30, color: '#fdcb6e', duration: 5000 },
+            doubleCoins: { width: 30, height: 30, color: '#a29bfe', duration: 30000 }
+        };
+        
+        // Background configurations
+        const backgrounds = {
+            pixar: {
+                gradient: ['#87CEEB', '#E0F7FA'],
+                elements: [
+                    { type: 'cloud', color: 'white', minSize: 50, maxSize: 150, count: 5, speed: 0.5 }
+                ],
+                drawFeatures: function() {
+                    // Mountains
+                    ctx.fillStyle = '#4a69bd';
+                    ctx.beginPath();
+                    ctx.moveTo(0, canvas.height - 100);
+                    ctx.lineTo(canvas.width * 0.3, canvas.height - 200);
+                    ctx.lineTo(canvas.width * 0.6, canvas.height - 150);
+                    ctx.lineTo(canvas.width, canvas.height - 180);
+                    ctx.lineTo(canvas.width, canvas.height);
+                    ctx.lineTo(0, canvas.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Hills
+                    ctx.fillStyle = '#3c6382';
+                    ctx.beginPath();
+                    ctx.moveTo(0, canvas.height - 50);
+                    ctx.lineTo(canvas.width * 0.2, canvas.height - 120);
+                    ctx.lineTo(canvas.width * 0.5, canvas.height - 80);
+                    ctx.lineTo(canvas.width * 0.8, canvas.height - 130);
+                    ctx.lineTo(canvas.width, canvas.height - 90);
+                    ctx.lineTo(canvas.width, canvas.height);
+                    ctx.lineTo(0, canvas.height);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            },
+            space: {
+                gradient: ['#0f0c29', '#302b63', '#24243e'],
+                elements: [
+                    { type: 'star', color: 'white', minSize: 1, maxSize: 3, count: 100, speed: 0 }
+                ],
+                drawFeatures: function() {
+                    // Planets
+                    ctx.fillStyle = 'rgba(106, 90, 205, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(canvas.width * 0.2, canvas.height * 0.3, 50, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = 'rgba(147, 112, 219, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(canvas.width * 0.7, canvas.height * 0.4, 70, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            },
+            underwater: {
+                gradient: ['#1a2980', '#26d0ce'],
+                elements: [
+                    { type: 'bubble', color: 'rgba(255, 255, 255, 0.5)', minSize: 10, maxSize: 30, count: 15, speed: 1 }
+                ],
+                drawFeatures: function() {
+                    // Seaweed
+                    ctx.fillStyle = '#2e8b57';
+                    for (let i = 0; i < 5; i++) {
+                        const x = canvas.width * (i / 5);
+                        ctx.beginPath();
+                        ctx.moveTo(x, canvas.height);
+                        ctx.quadraticCurveTo(x + 30, canvas.height - 100, x, canvas.height - 150);
+                        ctx.quadraticCurveTo(x - 30, canvas.height - 100, x, canvas.height);
+                        ctx.fill();
+                    }
+                }
+            },
+            neon: {
+                gradient: ['#0f2027', '#203a43', '#2c5364'],
+                elements: [
+                    { type: 'neonLight', color: '#00ffff', minSize: 2, maxSize: 5, count: 50, speed: 0 }
+                ],
+                drawFeatures: function() {
+                    // Neon grid
+                    ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+                    ctx.lineWidth = 1;
+                    
+                    // Vertical lines
+                    for (let x = 0; x < canvas.width; x += 50) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, canvas.height);
+                        ctx.stroke();
+                    }
+                    
+                    // Horizontal lines
+                    for (let y = 0; y < canvas.height; y += 50) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(canvas.width, y);
+                        ctx.stroke();
+                    }
+                    
+                    // Pulsing circles
+                    const pulse = Math.sin(Date.now() / 500) * 0.5 + 0.5;
+                    ctx.fillStyle = `rgba(0, 255, 255, ${pulse * 0.1})`;
+                    ctx.beginPath();
+                    ctx.arc(canvas.width * 0.8, canvas.height * 0.3, 40, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(canvas.width * 0.3, canvas.height * 0.7, 60, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        };
+        
+        // Game modes
+        const gameModes = {
+            classic: {
+                name: "Classic",
+                init: function() {
+                    timeDisplay.style.display = 'none';
+                    timeStat.style.display = 'none';
+                },
+                update: function(deltaTime) {
+                    // Score increases by dodging obstacles
+                },
+                gameOver: function() {
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('highScore', highScore);
+                    }
+                    finalHighScore.textContent = highScore;
+                }
+            },
+            timeAttack: {
+                name: "Time Attack",
+                init: function() {
+                    timeLeft = 60;
+                    timeDisplay.style.display = 'block';
+                    timeStat.style.display = 'block';
+                    updateTimeDisplay();
+                },
+                update: function(deltaTime) {
+                    timeLeft -= deltaTime / 1000;
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        gameOver();
+                    }
+                    updateTimeDisplay();
+                },
+                gameOver: function() {
+                    finalTime.textContent = formatTime(60 - timeLeft);
+                    if (score > timeAttackHighScore) {
+                        timeAttackHighScore = score;
+                        localStorage.setItem('timeAttackHighScore', timeAttackHighScore);
+                    }
+                    finalHighScore.textContent = timeAttackHighScore;
+                }
+            },
+            survival: {
+                name: "Survival",
+                init: function() {
+                    gameTime = 0;
+                    timeDisplay.style.display = 'block';
+                    timeStat.style.display = 'block';
+                    timeDisplay.textContent = "0:00";
+                },
+                update: function(deltaTime) {
+                    gameTime += deltaTime / 1000;
+                    timeDisplay.textContent = formatTime(gameTime);
+                    
+                    // Increase difficulty over time
+                    gameSpeed = 1 + gameTime / 30;
+                },
+                gameOver: function() {
+                    finalTime.textContent = formatTime(gameTime);
+                    if (gameTime > survivalHighScore) {
+                        survivalHighScore = gameTime;
+                        localStorage.setItem('survivalHighScore', survivalHighScore);
+                    }
+                    finalHighScore.textContent = formatTime(survivalHighScore);
+                }
+            }
+        };
+        
+        // Initialize game
+        function initGame() {
+            // Reset game state
+            score = 0;
+            coins = 0;
+            gameSpeed = 1;
+            obstacles = [];
+            coinsList = [];
+            powerUpsList = [];
+            platforms = [];
+            particles = [];
+            
+            // Reset timers
+            obstacleSpawnTimer = 0;
+            coinSpawnTimer = 0;
+            powerUpSpawnTimer = 0;
+            gameTime = 0;
+            
+            // Reset player
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 150;
+            player.isInvincible = upgrades.startInvincible;
+            player.invincibleTimer = upgrades.startInvincible ? 5000 * upgrades.powerUpDuration : 0;
+            activePowerUps.invincible = upgrades.startInvincible;
+            player.animationFrame = 0;
+            
+            // Reset active power-ups
+            activePowerUps.magnet = false;
+            activePowerUps.magnetTimer = 0;
+            activePowerUps.speed = false;
+            activePowerUps.speedTimer = 0;
+            activePowerUps.doubleCoins = false;
+            activePowerUps.doubleCoinsTimer = 0;
+            
+            // Initialize background
+            initBackground();
+            
+            // Initialize game mode
+            gameModes[settings.gameMode].init();
+            
+            // Update UI
+            scoreText.textContent = '0';
+            coinCount.textContent = '0';
+            shopCoinCount.textContent = totalCoins;
+            
+            // Update power-up indicators
+            updatePowerUpIndicators();
+        }
+        
+        // Initialize background
+        function initBackground() {
+            // Clear existing background elements
+            bgElements = [];
+            const bg = backgrounds[settings.background];
+            
+            // Create background elements
+            bg.elements.forEach(elementType => {
+                for (let i = 0; i < elementType.count; i++) {
+                    bgElements.push({
+                        type: elementType.type,
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * (elementType.maxSize - elementType.minSize) + elementType.minSize,
+                        color: elementType.color,
+                        speed: elementType.speed * (0.5 + Math.random() * 0.5),
+                        offset: Math.random() * 1000
+                    });
+                }
+            });
+        }
+        
+        // Start game
+        function startGame() {
+            if (gameRunning) return;
+            
+            initGame();
+            gameRunning = true;
+            gamePaused = false;
+            
+            menuScreen.style.display = 'none';
+            modeScreen.style.display = 'none';
+            bgScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            shopScreen.style.display = 'none';
+            pauseScreen.style.display = 'none';
+            
+            lastTime = performance.now();
+            gameLoop();
+        }
+        
+        // Pause game
+        function pauseGame() {
+            if (!gameRunning) return;
+            
+            gamePaused = true;
+            pauseScreen.style.display = 'flex';
+            cancelAnimationFrame(animationId);
+        }
+        
+        // Resume game
+        function resumeGame() {
+            if (!gameRunning) return;
+            
+            gamePaused = false;
+            pauseScreen.style.display = 'none';
+            lastTime = performance.now();
+            gameLoop();
+        }
+        
+        // Game over
+        function gameOver() {
+            if (!gameRunning) return;
+            
+            gameRunning = false;
+            
+            // Save coins
+            totalCoins += coins;
+            localStorage.setItem('totalCoins', totalCoins);
+            
+            // Update high scores based on game mode
+            gameModes[settings.gameMode].gameOver();
+            
+            // Update final stats
+            finalScore.textContent = score;
+            finalCoins.textContent = coins;
+            
+            gameOverScreen.style.display = 'flex';
+            cancelAnimationFrame(animationId);
+        }
+        
+        // Reset all progress
+        function resetProgress() {
+            if (confirm("Are you sure you want to reset ALL progress? This cannot be undone!")) {
+                localStorage.clear();
+                totalCoins = 0;
+                highScore = 0;
+                timeAttackHighScore = 0;
+                survivalHighScore = 0;
+                upgrades.magnet = false;
+                upgrades.speedBoost = 0;
+                upgrades.startInvincible = false;
+                upgrades.coinValue = 1;
+                upgrades.powerUpDuration = 1;
+                
+                shopCoinCount.textContent = '0';
+                updateShopButtons();
+                alert("All progress has been reset!");
+            }
+        }
+        
+        // Format time for display
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        // Update time display
+        function updateTimeDisplay() {
+            timeDisplay.textContent = formatTime(timeLeft);
+        }
+        
+        // Game loop
+        function gameLoop(timestamp = 0) {
+            if (!gameRunning || gamePaused) return;
+            
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            drawBackground();
+            
+            // Update and draw platforms
+            updatePlatforms(deltaTime);
+            drawPlatforms();
+            
+            // Update and draw player
+            updatePlayer(deltaTime);
+            drawPlayer();
+            
+            // Spawn objects
+            spawnObjects(deltaTime);
+            
+            // Update and draw objects
+            updateObjects(deltaTime);
+            drawObjects();
+            
+            // Update and draw particles
+            updateParticles(deltaTime);
+            drawParticles();
+            
+            // Update game mode
+            gameModes[settings.gameMode].update(deltaTime);
+            
+            // Update score display
+            scoreText.textContent = score;
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Draw background
+        function drawBackground() {
+            const bg = backgrounds[settings.background];
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bg.gradient.forEach((color, index) => {
+                gradient.addColorStop(index / (bg.gradient.length - 1), color);
+            });
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background features
+            bg.drawFeatures();
+            
+            // Draw background elements
+            const now = Date.now();
+            bgElements.forEach(element => {
+                switch(element.type) {
+                    case 'cloud':
+                        ctx.fillStyle = element.color;
+                        ctx.beginPath();
+                        ctx.arc(
+                            (element.x + now * element.speed * 0.001) % (canvas.width + 200) - 100, 
+                            element.y, 
+                            element.size, 
+                            0, 
+                            Math.PI * 2
+                        );
+                        ctx.fill();
+                        break;
+                        
+                    case 'star':
+                        ctx.fillStyle = element.color;
+                        ctx.globalAlpha = 0.5 + Math.sin(now * 0.001 + element.offset) * 0.5;
+                        ctx.beginPath();
+                        ctx.arc(element.x, element.y, element.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                        break;
+                        
+                    case 'bubble':
+                        ctx.fillStyle = element.color;
+                        ctx.beginPath();
+                        ctx.arc(
+                            element.x, 
+                            (element.y - now * element.speed * 0.001) % -100 + canvas.height + 50, 
+                            element.size, 
+                            0, 
+                            Math.PI * 2
+                        );
+                        ctx.fill();
+                        break;
+                        
+                    case 'neonLight':
+                        ctx.fillStyle = element.color;
+                        ctx.globalAlpha = 0.5 + Math.sin(now * 0.001 + element.offset) * 0.5;
+                        ctx.beginPath();
+                        ctx.arc(element.x, element.y, element.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                        break;
+                }
+            });
+        }
+        
+        // Platform functions
+        function updatePlatforms(deltaTime) {
+            // Create initial platform if none exists
+            if (platforms.length === 0) {
+                platforms.push({
+                    x: 0,
+                    y: canvas.height - 70,
+                    width: canvas.width,
+                    height: 20,
+                    color: '#555'
+                });
+            }
+        }
+        
+        function drawPlatforms() {
+            platforms.forEach(platform => {
+                // Platform shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(platform.x, platform.y + 5, platform.width, platform.height);
+                
+                // Platform body
+                ctx.fillStyle = platform.color;
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                
+                // Platform details
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+                
+                // Platform texture (bricks)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                const brickWidth = 40;
+                const brickHeight = 10;
+                
+                for (let x = platform.x; x < platform.x + platform.width; x += brickWidth) {
+                    for (let y = platform.y; y < platform.y + platform.height; y += brickHeight) {
+                        ctx.fillRect(x, y, brickWidth - 2, brickHeight - 2);
+                    }
+                }
+            });
+        }
+        
+        // Player functions
+        function updatePlayer(deltaTime) {
+            // Animation
+            player.animationFrame += deltaTime * 0.01;
+            
+            // Movement
+            if (player.movingLeft) {
+                player.x -= player.speed * (deltaTime / 16);
+            }
+            if (player.movingRight) {
+                player.x += player.speed * (deltaTime / 16);
+            }
+            
+            // Boundary check
+            player.x = Math.max(player.width / 2, Math.min(canvas.width - player.width / 2, player.x));
+            
+            // Update power-up timers
+            if (player.isInvincible) {
+                player.invincibleTimer -= deltaTime;
+                if (player.invincibleTimer <= 0) {
+                    player.isInvincible = false;
+                    activePowerUps.invincible = false;
+                    updatePowerUpIndicators();
+                }
+            }
+            
+            if (activePowerUps.doubleCoins) {
+                activePowerUps.doubleCoinsTimer -= deltaTime;
+                if (activePowerUps.doubleCoinsTimer <= 0) {
+                    activePowerUps.doubleCoins = false;
+                    updatePowerUpIndicators();
+                }
+            }
+            
+            if (activePowerUps.magnet) {
+                activePowerUps.magnetTimer -= deltaTime;
+                if (activePowerUps.magnetTimer <= 0) {
+                    activePowerUps.magnet = false;
+                    updatePowerUpIndicators();
+                }
+            }
+            
+            if (activePowerUps.speed) {
+                activePowerUps.speedTimer -= deltaTime;
+                if (activePowerUps.speedTimer <= 0) {
+                    activePowerUps.speed = false;
+                    updatePowerUpIndicators();
+                }
+            }
+        }
+        
+        function drawPlayer() {
+            // Draw platform under player
+            ctx.fillStyle = '#555';
+            ctx.fillRect(
+                player.x - player.platformWidth / 2, 
+                player.y + player.height / 2, 
+                player.platformWidth, 
+                player.platformHeight
+            );
+            
+            // Draw player shadow
+            ctx.beginPath();
+            ctx.ellipse(
+                player.x, 
+                player.y + player.height / 2 + 10, 
+                player.width / 2 * (1 + Math.sin(player.animationFrame * 0.1) * 0.1), 
+                player.width / 6, 
+                0, 0, Math.PI * 2
+            );
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fill();
+            
+            // Draw player body (blinking if invincible)
+            if (!player.isInvincible || Math.floor(Date.now() / 100) % 2 === 0) {
+                // Body with bounce animation
+                const bounce = Math.sin(player.animationFrame * 0.2) * 5;
+                ctx.fillStyle = player.color;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y - bounce, player.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eyes
+                const eyeOffset = Math.sin(player.animationFrame * 0.2) * 2;
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(player.x - 15, player.y - 5 - bounce + eyeOffset, 8, 0, Math.PI * 2);
+                ctx.arc(player.x + 15, player.y - 5 - bounce + eyeOffset, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(player.x - 15, player.y - 5 - bounce + eyeOffset, 4, 0, Math.PI * 2);
+                ctx.arc(player.x + 15, player.y - 5 - bounce + eyeOffset, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mouth - changes with movement
+                let mouthY = player.y + 10 - bounce;
+                if (player.movingLeft || player.movingRight) {
+                    mouthY += Math.sin(player.animationFrame * 0.3) * 3;
+                }
+                
+                ctx.beginPath();
+                if (player.movingLeft || player.movingRight) {
+                    ctx.arc(player.x, mouthY, 10, 0.2, Math.PI - 0.2);
+                } else {
+                    ctx.arc(player.x, mouthY, 10, 0, Math.PI);
+                }
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        // Object spawning
+        function spawnObjects(deltaTime) {
+            // Spawn obstacles
+            obstacleSpawnTimer += deltaTime;
+            if (obstacleSpawnTimer > 1000 / gameSpeed) {
+                obstacleSpawnTimer = 0;
+                spawnObstacle();
+            }
+            
+            // Spawn coins
+            coinSpawnTimer += deltaTime;
+            if (coinSpawnTimer > 1500 / gameSpeed) {
+                coinSpawnTimer = 0;
+                if (Math.random() < 0.7) spawnCoin();
+            }
+            
+            // Spawn power-ups
+            powerUpSpawnTimer += deltaTime;
+            if (powerUpSpawnTimer > 10000 / gameSpeed) {
+                powerUpSpawnTimer = 0;
+                if (Math.random() < 0.5) spawnPowerUp();
+            }
+        }
+        
+        function spawnObstacle() {
+            const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+            const x = Math.random() * (canvas.width - type.width);
+            const y = -type.height;
+            const speed = 2 + Math.random() * 3 * gameSpeed;
+            
+            obstacles.push({
+                ...type,
+                x,
+                y,
+                speed,
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.05
+            });
+        }
+        
+        function spawnCoin() {
+            const x = Math.random() * (canvas.width - 30);
+            const y = -30;
+            const speed = 1 + Math.random() * 2 * gameSpeed;
+            
+            coinsList.push({
+                x,
+                y,
+                width: 30,
+                height: 30,
+                speed,
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.05,
+                value: upgrades.coinValue * (activePowerUps.doubleCoins ? 2 : 1)
+            });
+        }
+        
+        function spawnPowerUp() {
+            const types = ['magnet', 'speed', 'invincible', 'doubleCoins'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const powerUp = powerUpTypes[type];
+            
+            const x = Math.random() * (canvas.width - powerUp.width);
+            const y = -powerUp.height;
+            const speed = 1 + Math.random() * 2 * gameSpeed;
+            
+            powerUpsList.push({
+                ...powerUp,
+                x,
+                y,
+                speed,
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.05,
+                type
+            });
+        }
+        
+        // Object updating
+        function updateObjects(deltaTime) {
+            // Update obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obj = obstacles[i];
+                
+                obj.y += obj.speed * (deltaTime / 16);
+                obj.rotation += obj.rotationSpeed * (deltaTime / 16);
+                
+                // Check collision with player
+                if (!player.isInvincible && checkCollision(player, obj)) {
+                    createParticles(obj.x + obj.width/2, obj.y + obj.height/2, obj.color);
+                    obstacles.splice(i, 1);
+                    gameOver();
+                    return;
+                }
+                
+                // Remove if out of screen and increase score
+                if (obj.y > canvas.height + obj.height) {
+                    score += obj.score;
+                    obstacles.splice(i, 1);
+                }
+            }
+            
+            // Update coins
+            for (let i = coinsList.length - 1; i >= 0; i--) {
+                const coin = coinsList[i];
+                
+                coin.y += coin.speed * (deltaTime / 16);
+                coin.rotation += coin.rotationSpeed * (deltaTime / 16);
+                
+                // Magnet effect
+                if (activePowerUps.magnet || upgrades.magnet) {
+                    const dx = player.x - (coin.x + coin.width/2);
+                    const dy = (player.y - 30) - (coin.y + coin.height/2);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 200) { // Magnet range
+                        const angle = Math.atan2(dy, dx);
+                        const pullStrength = 10 * (1 - distance/200);
+                        coin.x += Math.cos(angle) * pullStrength * (deltaTime / 16);
+                        coin.y += Math.sin(angle) * pullStrength * (deltaTime / 16);
+                    }
+                }
+                
+                // Check collision with player
+                if (checkCollision(player, coin)) {
+                    coins += coin.value;
+                    totalCoins += coin.value;
+                    coinCount.textContent = coins;
+                    shopCoinCount.textContent = totalCoins;
+                    createParticles(coin.x + coin.width/2, coin.y + coin.height/2, '#FFD700');
+                    coinsList.splice(i, 1);
+                    continue;
+                }
+                
+                // Remove if out of screen
+                if (coin.y > canvas.height + coin.height) {
+                    coinsList.splice(i, 1);
+                }
+            }
+            
+            // Update power-ups
+            for (let i = powerUpsList.length - 1; i >= 0; i--) {
+                const powerUp = powerUpsList[i];
+                
+                powerUp.y += powerUp.speed * (deltaTime / 16);
+                powerUp.rotation += powerUp.rotationSpeed * (deltaTime / 16);
+                
+                // Check collision with player
+                if (checkCollision(player, powerUp)) {
+                    activatePowerUp(powerUp.type, powerUp.duration * upgrades.powerUpDuration);
+                    createParticles(powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2, powerUp.color);
+                    powerUpsList.splice(i, 1);
+                    continue;
+                }
+                
+                // Remove if out of screen
+                if (powerUp.y > canvas.height + powerUp.height) {
+                    powerUpsList.splice(i, 1);
+                }
+            }
+        }
+        
+        // Object drawing
+        function drawObjects() {
+            // Draw obstacles
+            obstacles.forEach(obj => {
+                ctx.save();
+                ctx.translate(obj.x + obj.width/2, obj.y + obj.height/2);
+                ctx.rotate(obj.rotation);
+                
+                // Shadow
+                ctx.beginPath();
+                ctx.ellipse(0, obj.height/2 + 5, obj.width/2, obj.width/6, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fill();
+                
+                // Body
+                ctx.fillStyle = obj.color;
+                ctx.fillRect(-obj.width/2, -obj.height/2, obj.width, obj.height);
+                
+                // Highlight
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(-obj.width/2, -obj.height/2, obj.width, obj.height);
+                
+                // Obstacle details (different for each type)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                if (obj.width > obj.height) { // Wide obstacle
+                    ctx.fillRect(-obj.width/2 + 10, -obj.height/2 + 10, obj.width - 20, 5);
+                    ctx.fillRect(-obj.width/2 + 10, -obj.height/2 + 20, obj.width - 20, 5);
+                } else { // Tall obstacle
+                    ctx.fillRect(-obj.width/2 + 10, -obj.height/2 + 10, 5, obj.height - 20);
+                    ctx.fillRect(-obj.width/2 + 20, -obj.height/2 + 10, 5, obj.height - 20);
+                }
+                
+                ctx.restore();
+            });
+            
+            // Draw coins
+            coinsList.forEach(coin => {
+                ctx.save();
+                ctx.translate(coin.x + coin.width/2, coin.y + coin.height/2);
+                ctx.rotate(coin.rotation);
+                
+                // Shadow
+                ctx.beginPath();
+                ctx.ellipse(0, 5, coin.width/2, coin.width/6, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fill();
+                
+                // Coin body
+                const gradient = ctx.createRadialGradient(0, 0, 5, 0, 0, 15);
+                gradient.addColorStop(0, '#FFD700');
+                gradient.addColorStop(1, '#FFA500');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, coin.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Coin details
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, coin.width/2 - 3, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // "$" symbol
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('$', 0, 0);
+                
+                ctx.restore();
+            });
+            
+            // Draw power-ups
+            powerUpsList.forEach(powerUp => {
+                ctx.save();
+                ctx.translate(powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2);
+                ctx.rotate(powerUp.rotation);
+                
+                // Shadow
+                ctx.beginPath();
+                ctx.ellipse(0, 5, powerUp.width/2, powerUp.width/6, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fill();
+                
+                // Body
+                ctx.fillStyle = powerUp.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, powerUp.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, powerUp.width/2 - 3, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Icon
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                switch(powerUp.type) {
+                    case 'magnet':
+                        // Draw magnet icon
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(-8, -5, 16, 10);
+                        ctx.fillStyle = powerUp.color;
+                        ctx.beginPath();
+                        ctx.arc(-12, 0, 7, 0, Math.PI * 2);
+                        ctx.arc(12, 0, 7, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                        
+                    case 'speed':
+                        // Draw lightning bolt
+                        ctx.fillStyle = 'white';
+                        ctx.beginPath();
+                        ctx.moveTo(0, -8);
+                        ctx.lineTo(5, 0);
+                        ctx.lineTo(-2, 0);
+                        ctx.lineTo(3, 8);
+                        ctx.lineTo(-3, 8);
+                        ctx.lineTo(-8, 0);
+                        ctx.lineTo(0, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                        
+                    case 'invincible':
+                        // Draw star
+                        drawStar(ctx, 0, 0, 5, 10, 5);
+                        ctx.fillStyle = 'white';
+                        ctx.fill();
+                        break;
+                        
+                    case 'doubleCoins':
+                        // Draw 2x coins
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 18px Arial';
+                        ctx.fillText('2X', 0, 0);
+                        break;
+                }
+                
+                ctx.restore();
+            });
+        }
+        
+        // Particle functions
+        function createParticles(x, y, color) {
+            const count = 15;
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x,
+                    y,
+                    size: Math.random() * 5 + 2,
+                    color,
+                    speedX: (Math.random() - 0.5) * 6,
+                    speedY: (Math.random() - 0.5) * 6,
+                    life: 100,
+                    decay: Math.random() * 3 + 1
+                });
+            }
+        }
+        
+        function updateParticles(deltaTime) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                
+                p.x += p.speedX * (deltaTime / 16);
+                p.y += p.speedY * (deltaTime / 16);
+                p.life -= p.decay * (deltaTime / 16);
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+        
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life / 100;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+        
+        // Power-up functions
+        function activatePowerUp(type, duration) {
+            switch(type) {
+                case 'magnet':
+                    activePowerUps.magnet = true;
+                    activePowerUps.magnetTimer = duration;
+                    break;
+                    
+                case 'speed':
+                    activePowerUps.speed = true;
+                    activePowerUps.speedTimer = duration;
+                    break;
+                    
+                case 'invincible':
+                    player.isInvincible = true;
+                    activePowerUps.invincible = true;
+                    player.invincibleTimer = duration;
+                    break;
+                    
+                case 'doubleCoins':
+                    activePowerUps.doubleCoins = true;
+                    activePowerUps.doubleCoinsTimer = duration;
+                    break;
+            }
+            
+            updatePowerUpIndicators();
+        }
+        
+        function updatePowerUpIndicators() {
+            magnetIndicator.style.opacity = (activePowerUps.magnet || upgrades.magnet) ? '1' : '0';
+            speedIndicator.style.opacity = activePowerUps.speed ? '1' : '0';
+            invincibleIndicator.style.opacity = activePowerUps.invincible ? '1' : '0';
+            doubleCoinIndicator.style.opacity = activePowerUps.doubleCoins ? '1' : '0';
+            
+            // Blinking animation for active power-ups
+            if (activePowerUps.magnet) magnetIndicator.style.animation = 'blink 1s infinite';
+            else magnetIndicator.style.animation = '';
+            
+            if (activePowerUps.speed) speedIndicator.style.animation = 'blink 1s infinite';
+            else speedIndicator.style.animation = '';
+            
+            if (activePowerUps.invincible) invincibleIndicator.style.animation = 'blink 0.5s infinite';
+            else invincibleIndicator.style.animation = '';
+            
+            if (activePowerUps.doubleCoins) doubleCoinIndicator.style.animation = 'blink 1s infinite';
+            else doubleCoinIndicator.style.animation = '';
+        }
+        
+        // Shop functions
+        function openShop() {
+            shopScreen.style.display = 'flex';
+            shopCoinCount.textContent = totalCoins;
+            updateShopButtons();
+        }
+        
+        function closeShop() {
+            shopScreen.style.display = 'none';
+        }
+        
+        function updateShopButtons() {
+            buyMagnet.disabled = upgrades.magnet || totalCoins < 100;
+            buyMagnet.textContent = upgrades.magnet ? 'PURCHASED' : 'BUY (100)';
+            
+            buySpeed.disabled = totalCoins < 50;
+            buySpeed.textContent = `BUY (50) - Lv.${upgrades.speedBoost + 1}`;
+            
+            buyInvincible.disabled = upgrades.startInvincible || totalCoins < 150;
+            buyInvincible.textContent = upgrades.startInvincible ? 'PURCHASED' : 'BUY (150)';
+            
+            buyDoubleCoins.disabled = totalCoins < 75;
+            buyDoubleCoins.textContent = 'BUY (75)';
+            
+            buyCoinValue.disabled = upgrades.coinValue > 4 || totalCoins < 200;
+            buyCoinValue.textContent = upgrades.coinValue > 4 ? 'MAX LEVEL' : `BUY (200) - Lv.${upgrades.coinValue}`;
+            
+            buyPowerUpDuration.disabled = upgrades.powerUpDuration > 2 || totalCoins < 250;
+            buyPowerUpDuration.textContent = upgrades.powerUpDuration > 2 ? 'MAX LEVEL' : `BUY (250) - Lv.${upgrades.powerUpDuration}`;
+        }
+        
+        function buyUpgrade(type) {
+            let cost = 0;
+            
+            switch(type) {
+                case 'magnet':
+                    cost = 100;
+                    if (totalCoins >= cost && !upgrades.magnet) {
+                        totalCoins -= cost;
+                        upgrades.magnet = true;
+                        localStorage.setItem('magnet', 'true');
+                    }
+                    break;
+                    
+                case 'speed':
+                    cost = 50;
+                    if (totalCoins >= cost) {
+                        totalCoins -= cost;
+                        upgrades.speedBoost++;
+                        localStorage.setItem('speedBoost', upgrades.speedBoost);
+                    }
+                    break;
+                    
+                case 'invincible':
+                    cost = 150;
+                    if (totalCoins >= cost && !upgrades.startInvincible) {
+                        totalCoins -= cost;
+                        upgrades.startInvincible = true;
+                        localStorage.setItem('startInvincible', 'true');
+                    }
+                    break;
+                    
+                case 'doubleCoins':
+                    cost = 75;
+                    if (totalCoins >= cost) {
+                        totalCoins -= cost;
+                        activePowerUps.doubleCoins = true;
+                        activePowerUps.doubleCoinsTimer = 30000 * upgrades.powerUpDuration;
+                        updatePowerUpIndicators();
+                    }
+                    break;
+                    
+                case 'coinValue':
+                    cost = 200;
+                    if (totalCoins >= cost && upgrades.coinValue <= 4) {
+                        totalCoins -= cost;
+                        upgrades.coinValue++;
+                        localStorage.setItem('coinValue', upgrades.coinValue);
+                    }
+                    break;
+                    
+                case 'powerUpDuration':
+                    cost = 250;
+                    if (totalCoins >= cost && upgrades.powerUpDuration <= 2) {
+                        totalCoins -= cost;
+                        upgrades.powerUpDuration++;
+                        localStorage.setItem('powerUpDuration', upgrades.powerUpDuration);
+                    }
+                    break;
+            }
+            
+            localStorage.setItem('totalCoins', totalCoins);
+            coinCount.textContent = coins;
+            shopCoinCount.textContent = totalCoins;
+            updateShopButtons();
+        }
+        
+        // Helper functions
+        function checkCollision(player, obj) {
+            return player.x - player.width/2 < obj.x + obj.width &&
+                   player.x + player.width/2 > obj.x &&
+                   player.y - player.height/2 < obj.y + obj.height &&
+                   player.y + player.height/2 > obj.y;
+        }
+        
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI/2 * 3;
+            let x = cx;
+            let y = cy;
+            let step = Math.PI / spikes;
+            
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+                
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        modeBtn.addEventListener('click', () => {
+            menuScreen.style.display = 'none';
+            modeScreen.style.display = 'flex';
+        });
+        bgBtn.addEventListener('click', () => {
+            menuScreen.style.display = 'none';
+            bgScreen.style.display = 'flex';
+        });
+        shopBtn.addEventListener('click', openShop);
+        gameOverShopBtn.addEventListener('click', openShop);
+        resetBtn.addEventListener('click', resetProgress);
+        pauseBtn.addEventListener('click', pauseGame);
+        resumeBtn.addEventListener('click', resumeGame);
+        menuBtn.addEventListener('click', () => {
+            gameRunning = false;
+            pauseScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        });
+        restartBtn.addEventListener('click', startGame);
+        closeShopBtn.addEventListener('click', closeShop);
+        backFromMode.addEventListener('click', () => {
+            modeScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        });
+        backFromBg.addEventListener('click', () => {
+            bgScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        });
+        
+        // Mode selection
+        classicMode.addEventListener('click', () => {
+            settings.gameMode = 'classic';
+            localStorage.setItem('gameMode', 'classic');
+            startGame();
+        });
+        
+        timeAttackMode.addEventListener('click', () => {
+            settings.gameMode = 'timeAttack';
+            localStorage.setItem('gameMode', 'timeAttack');
+            startGame();
+        });
+        
+        survivalMode.addEventListener('click', () => {
+            settings.gameMode = 'survival';
+            localStorage.setItem('gameMode', 'survival');
+            startGame();
+        });
+        
+        // Background selection
+        pixarBg.addEventListener('click', () => {
+            settings.background = 'pixar';
+            localStorage.setItem('background', 'pixar');
+            bgScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        });
+        
+        spaceBg.addEventListener('click', () => {
+            settings.background = 'space';
+            localStorage.setItem('background', 'space');
+            bgScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        });
+        
+        underwaterBg.addEventListener('click', () => {
+            settings.background = 'underwater';
+            localStorage.setItem('background', 'underwater');
+            bgScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        });
+        
+        neonBg.addEventListener('click', () => {
+            settings.background = 'neon';
+            localStorage.setItem('background', 'neon');
+            bgScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+        });
+        
+        // Keyboard controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && gameRunning && !gamePaused) {
+                pauseGame();
+            }
+            
+            if (!gameRunning) return;
+            
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                player.movingLeft = true;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                player.movingRight = true;
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                player.movingLeft = false;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                player.movingRight = false;
+            }
+        });
+        
+        // Touch controls
+        let touchStartX = 0;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            if (!gameRunning) return;
+            touchStartX = e.touches[0].clientX;
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            if (!gameRunning) return;
+            e.preventDefault();
+            const touchX = e.touches[0].clientX;
+            const diff = touchX - touchStartX;
+            
+            if (diff > 10) {
+                player.movingLeft = false;
+                player.movingRight = true;
+            } else if (diff < -10) {
+                player.movingLeft = true;
+                player.movingRight = false;
+            }
+            
+            touchStartX = touchX;
+        });
+        
+        canvas.addEventListener('touchend', () => {
+            player.movingLeft = false;
+            player.movingRight = false;
+        });
+        
+        // Shop item buttons
+        buyMagnet.addEventListener('click', () => buyUpgrade('magnet'));
+        buySpeed.addEventListener('click', () => buyUpgrade('speed'));
+        buyInvincible.addEventListener('click', () => buyUpgrade('invincible'));
+        buyDoubleCoins.addEventListener('click', () => buyUpgrade('doubleCoins'));
+        buyCoinValue.addEventListener('click', () => buyUpgrade('coinValue'));
+        buyPowerUpDuration.addEventListener('click', () => buyUpgrade('powerUpDuration'));
+        
+        // Initialize shop
+        updateShopButtons();
+    </script>
+</body>
+</html>
